@@ -1,0 +1,151 @@
+//tracker 
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_SHOWS 100
+
+typedef struct {
+    char name[100];
+    char status[20];
+    int  ep_watched;
+    float rating;
+} Show;
+
+Show library[MAX_SHOWS];
+int num = 0;
+
+void save_shows()
+{
+    FILE *f = fopen("shows.txt", "w");
+    for (int i = 0; i < num; i++)
+    {
+        fprintf(f, "%s|%s|%d|%.1f\n",
+            library[i].name,
+            library[i].status,
+            library[i].ep_watched,
+            library[i].rating);
+    }
+    fclose(f);
+}
+
+void load_shows()
+{
+    FILE *f = fopen("shows.txt", "r");
+    if (f == NULL) {
+        return;
+    }
+    while (fscanf(f, "%99[^|]|%19[^|]|%d|%f\n",
+            library[num].name,
+            library[num].status,
+            &library[num].ep_watched,
+            &library[num].rating) == 4) {
+        num++;
+    }
+    fclose(f);
+}
+
+void delete_show(int idx)
+{
+    for (int i = idx; i < num - 1; i++)
+    {
+        library[i] = library[i + 1];
+    }
+    num--;
+    save_shows();
+}
+
+void edit_show(int idx)
+{
+    printf("\ntitle:");
+    scanf(" %99[^\n]", library[idx].name);
+    printf("\nstatus:");
+    scanf("%19s", library[idx].status);
+    printf("\nep watched:");
+    scanf("%d", &library[idx].ep_watched);
+    printf("\nrating:");
+    scanf("%f", &library[idx].rating);
+    save_shows();
+    printf("\nUpdated\n");
+}
+
+int main(){
+    int choice;
+    load_shows();
+    do{
+        printf("press 1 to add show to the list\n");
+        printf("press 2 to see list of shows\n");
+        printf("press 3 to exit\n");
+        printf("press 4 to edit a show\n");
+        printf("press 5 to delete a show\n");
+        scanf("%d", &choice);
+        switch (choice)
+        {
+        case 1:
+            printf("add show\n");
+            if (num < MAX_SHOWS)
+            {
+                Show s;
+                printf("\ntitle:");
+                scanf(" %99[^\n]", s.name);
+                printf("\nstatus:");
+                scanf("%19s", s.status);
+                printf("\nep watched:");
+                scanf("%d", &s.ep_watched);
+                printf("\nrating:");
+                scanf("%f", &s.rating);
+                library[num++] = s;
+                printf("\nAdded\n");
+            }
+            save_shows();
+            break;
+        case 2:
+            printf("list of shows\n");
+            if (num == 0)
+            {
+                printf("no shows added\n");
+                break;
+            }
+            for (int i = 0; i < num; i++)
+            {
+                printf("(%d) %s - %s - ep%d - %.1f\n",
+                    i+1,
+                    library[i].name,
+                    library[i].status,
+                    library[i].ep_watched,
+                    library[i].rating);
+            }
+            break;
+        case 3:
+            printf("goodbye\n");
+            break;
+        case 4:
+        {
+            int pick;
+            printf("enter show number to edit:\n");
+            scanf("%d", &pick);
+            if (pick < 1 || pick > num)
+                printf("invalid number\n");
+            else
+                edit_show(pick - 1);
+            break;
+        }
+        case 5:
+        {
+            int pick;
+            printf("enter show number to delete:\n");
+            scanf("%d", &pick);
+            if (pick < 1 || pick > num)
+                printf("invalid number\n");
+            else
+            {
+                delete_show(pick - 1);
+                printf("deleted\n");
+            }
+            break;
+        }
+        default:
+            printf("invalid choice\n");
+        }
+    } while (choice != 3);
+    return 0;
+}
